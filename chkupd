@@ -1,0 +1,58 @@
+#!/bin/sh
+# chkupd
+# Copyright 2021 <kreato@kreato.dev>
+#
+# This file is part of chkupd.
+#
+# chkupd is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# chkupd is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with chkupd. If not, see <https://www.gnu.org/licenses/>.
+VER=1.0
+
+main() {
+    echo $1
+    echo "checking package $1"
+    [ ! -d "$1" ] && echo "error: please go onto the repository's folder" && exit 1
+    echo "connecting to arch repositories"
+    UPSTREAM_VER="$(curl -s https://archlinux.org/packages/search/json/?name=$1 | jq '.results[0].pkgver' -r)"
+    . "$1/run"
+    if [ "$VERSION" = "$UPSTREAM_VER" ]; then
+        echo "the package is uptodate!"
+    elif [ "$UPSTREAM_VER" = "null" ] || [ "$UPSTREAM_VER" = "" ]; then
+        echo "the package didn't have a version (possibly not on the repos), skipping"
+        exit 0
+    else
+        echo "the package is not uptodate!"
+        echo "upstream version: $UPSTREAM_VER"
+        echo "local version: $VERSION"
+    fi
+    case "$2" in
+        "-u")
+            echo "Updating to upstream..."
+            sed "s/$VERSION/$UPSTREAM_VER/g" -i "$1/run"
+            echo "Updated to $UPSTREAM_VER."
+            echo "Please test it before publishing."
+        ;;
+    esac
+}
+
+case "$1" in
+    "-h")
+        man chkupd
+    ;;
+    "-v")
+        echo "chkupd - v$VER"
+    ;;
+    *)
+        main "$@"
+    ;;
+esac
