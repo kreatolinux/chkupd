@@ -16,7 +16,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with chkupd. If not, see <https://www.gnu.org/licenses/>.
-VER=1.1
+VER=1.2
 
 version() {
     echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; # From https://stackoverflow.com/a/37939589
@@ -40,8 +40,26 @@ main() {
     fi
     case "$2" in
         "-u")
+            [ "$FORCED_UPDATE" != "1" ] && [ "$VERSION" = "$UPSTREAM_VER" ] && echo "error: upstream and local version are the same, FORCED_UPDATE=1 to skip" && exit 1
             echo "Updating to upstream..."
-            sed "s/$VERSION/$UPSTREAM_VER/g" -i "$1/run"
+            sed -i "s/VERSION=.*/VERSION=$UPSTREAM_VER/g" $1/run
+            [ -d "tmp" ] && rm -rf tmp
+            mkdir tmp 
+            cd tmp || exit 1
+            . ../$1/run
+            echo "$SOURCES" | cut -d ';' -f 1 | while read -r line
+            do
+                filename=$(basename $line)
+                echo "$line"
+                wget "$line"
+                sum="$(sha256sum "$filename");"
+                printf "$sum" >> tmp.sum
+            done
+            sum=$(cat tmp.sum)
+            echo $sum
+            sed -i "s/SHA256SUM=.*/SHA256SUM=\x22$sum\x22/g" ../$1/run
+            cd .. || exit 1
+            rm -rf tmp
             echo "Updated to $UPSTREAM_VER."
             echo "Please test it before publishing."
         ;;
