@@ -1,13 +1,12 @@
 # chkupd
 Checks Arch Linux repositories to see if packages are uptodate or not.
-Is not really stable but works for some simple packages.
 
 # Dependencies
 * jq
 * curl
 
 # Installation
-Add it onto `$PATH` or execute directly. Nyaa package will be available soon.
+Add it onto `$PATH` or execute directly. Nyaa package is also available for you to install.
 
 # License
 Copyright (C) 2022 Kreato
