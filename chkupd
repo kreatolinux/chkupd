@@ -16,59 +16,34 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with chkupd. If not, see <https://www.gnu.org/licenses/>.
-VER=1.2
+VER="2-rc1"
 
-version() {
-    echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; # From https://stackoverflow.com/a/37939589
-}
+. libchkupd/libchkupd
 
 main() {
-    echo "checking package $1"
+    [ -z "$2" ] && echo "error: invalid backends" && exit 1
     [ ! -d "$1" ] && echo "error: please go onto the repository's folder" && exit 1
-    echo "connecting to arch repositories"
-    UPSTREAM_VER="$(curl -s https://archlinux.org/packages/search/json/?name=$1 | jq '.results[0].pkgver' -r | cut -f1 -d"-")"
-    . "$1/run"
-    if [ "$(version $VERSION)" -ge "$(version $UPSTREAM_VER)" ]; then
-        echo "the package is uptodate!"
-    elif [ "$UPSTREAM_VER" = "null" ] || [ "$UPSTREAM_VER" = "" ]; then
-        echo "the package didn't have a version (possibly not on the repos), skipping"
-        exit 0
-    else
-        echo "the package is not uptodate!"
-        echo "upstream version: $UPSTREAM_VER"
-        echo "local version: $VERSION"
-    fi
-    case "$2" in
-        "-u")
-            [ "$FORCED_UPDATE" != "1" ] && [ "$VERSION" = "$UPSTREAM_VER" ] && echo "error: upstream and local version are the same, FORCED_UPDATE=1 to skip" && exit 1
-            echo "Updating to upstream..."
-            sed -i "s/VERSION=.*/VERSION=$UPSTREAM_VER/g" $1/run
-            [ -d "tmp" ] && rm -rf tmp
-            mkdir tmp 
-            cd tmp || exit 1
-            . ../$1/run
-            echo "$SOURCES" | cut -d ';' -f 1 | while read -r line
-            do
-                filename=$(basename $line)
-                echo "$line"
-                wget "$line"
-                sum="$(sha256sum "$filename");"
-                printf "$sum" >> tmp.sum
-            done
-            sum=$(cat tmp.sum)
-            echo $sum
-            sed -i "s/SHA256SUM=.*/SHA256SUM=\x22$sum\x22/g" ../$1/run
-            cd .. || exit 1
-            rm -rf tmp
-            echo "Updated to $UPSTREAM_VER."
-            echo "Please test it before publishing."
-        ;;
-    esac
+    echo "chkupd v$VER"
+    echo "backends: $2"
+    for i in $(echo "$2" | tr "," "\n"); do
+	    case $i in
+		    "arch")
+	     		arch_chkupd $1 $3
+		    	;;
+		    "nyaa")
+		    	nyaa_chkupd $1 $3
+			;;
+		    *)
+			echo "warning: $i is not an available backend, skipping"
+			;;
+	    esac
+    done
+    exit $ERR
 }
 
 case "$1" in
     "-h")
-        man chkupd
+        echo "usage: chkupd [PACKAGE_DIR] [BACKENDS] [ARGS]"
     ;;
     "-v")
         echo "chkupd - v$VER"

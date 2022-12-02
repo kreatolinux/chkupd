@@ -1,0 +1,12 @@
+#!/bin/sh
+# libchkupd - chkupd, as a library
+
+version() {
+    echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; # From https://stackoverflow.com/a/37939589
+}
+
+PATH_OF_LIBCHKUPD=$(realpath libchkupd)
+
+for i in $PATH_OF_LIBCHKUPD/backends/*; do
+	. $i || exit 1
+done

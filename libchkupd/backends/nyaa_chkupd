@@ -1,0 +1,24 @@
+#!/bin/sh
+# nyaa_chkupd
+nyaa_chkupd() {
+	echo "nyaa_chkupd: comparing to nyaa-repo"
+	. "$1/run" || exit 1
+	wget https://raw.githubusercontent.com/kreatolinux/nyaa-repo/master/$NAME/run -O /tmp/tmp.run > /dev/null 2>&1
+	. /tmp/tmp.run || exit 1
+	UPSTREAM_VERSION="$VERSION"	
+	if [ -d "$2" ]; then
+		. "$2/$NAME-bin/run" || exit 1
+	else
+		. "$NAME-bin/run" || exit 1
+	fi
+	
+	if [ "$(version $VERSION)" -ge "$(version $UPSTREAM_VERSION)" ]; then
+		echo "nyaa_chkupd the package is uptodate compared to nyaa-repo!"
+	else
+		echo "nyaa_chkupd: the package is not uptodate!"
+		echo "nyaa_chkupd: upstream version: $UPSTREAM_VERSION"
+		echo "nyaa_chkupd: local version: $VERSION"
+		export ERR=1
+	fi
+
+}

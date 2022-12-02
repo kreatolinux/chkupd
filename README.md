@@ -1,12 +1,16 @@
 # chkupd v2
 The ultimate update checker for Kreato Linux.
+The repository also contains libchkupd, the main part of chkupd which is meant to be sourced by other scripts.
+This is done so other Kreato Linux projects can use chkupd without invoking it directly, giving more control.
 
 # Dependencies
 * jq
 * curl
 
-# Installation
-Add it onto `$PATH` or execute directly. Nyaa package is also available for you to install.
+# Backends
+Current backends include;
+* nyaa_chkupd which checks for nyaa-repo-bin packages' updates
+* arch_chkupd which checks from the Arch repository for updates
 
 # License
 Copyright (C) 2022 Kreato

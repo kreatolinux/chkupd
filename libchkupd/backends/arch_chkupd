@@ -1,0 +1,18 @@
+#!/bin/sh
+# arch_chkupd
+arch_chkupd() {
+     . "$1/run"
+     echo "arch_chkupd: checking package $NAME"
+     echo "arch_chkupd: connecting to arch repositories"
+     UPSTREAM_VER="$(curl -s https://archlinux.org/packages/search/json/?name=$NAME | jq '.results[0].pkgver' -r | cut -f1 -d"-")"
+     if [ "$(version $VERSION)" -ge "$(version $UPSTREAM_VER)" ]; then
+        echo "arch_chkupd: the package is uptodate compared to arch repositories!"
+	echo "arch_chkupd: arch version: $UPSTREAM_VER"
+	echo "arch_chkupd: local version: $VERSION"
+     else
+	echo "arch_chkupd: the package is not uptodate compared to arch repositories!"
+	echo "arch_chkupd: arch version: $UPSTREAM_VER"
+	echo "arch_chkupd: local version: $VERSION"
+	export ERR=1
+     fi
+}
