@@ -1,5 +1,5 @@
-# chkupd
-Checks Arch Linux repositories to see if packages are uptodate or not.
+# chkupd v2
+The ultimate update checker for Kreato Linux.
 
 # Dependencies
 * jq
