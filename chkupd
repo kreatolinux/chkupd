@@ -25,18 +25,14 @@ main() {
     [ ! -d "$1" ] && echo "error: please go onto the repository's folder" && exit 1
     echo "chkupd v$VER"
     echo "backends: $2"
+    export LOGS=$LOGS
+    rm -f $LOGS
     for i in $(echo "$2" | tr "," "\n"); do
-	    case $i in
-		    "arch")
-	     		arch_chkupd $1 $3
-		    	;;
-		    "nyaa")
-		    	nyaa_chkupd $1 $3
-			;;
-		    *)
-			echo "warning: $i is not an available backend, skipping"
-			;;
-	    esac
+	    if [ -f "libchkupd/backends/"$i"_chkupd" ]; then
+	     	"$i"_chkupd "$1" "$3"
+	    else
+		echo "warning: $i is not an available backend, skipping"
+	    fi
     done
     exit $ERR
 }

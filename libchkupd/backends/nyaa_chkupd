@@ -7,17 +7,31 @@ nyaa_chkupd() {
 	. /tmp/tmp.run || exit 1
 	UPSTREAM_VERSION="$VERSION"	
 	if [ -d "$2" ]; then
+		LIBCHKUPD_BIN_PATH="$2/$NAME-bin"
 		. "$2/$NAME-bin/run" || exit 1
 	else
+		LIBCHKUPD_BIN_PATH="$NAME-bin"
 		. "$NAME-bin/run" || exit 1
 	fi
 	
 	if [ "$(version $VERSION)" -ge "$(version $UPSTREAM_VERSION)" ]; then
-		echo "nyaa_chkupd the package is uptodate compared to nyaa-repo!"
+		echo "nyaa_chkupd: the package is uptodate compared to nyaa-repo!"
 	else
 		echo "nyaa_chkupd: the package is not uptodate!"
+		
+		if [ "$LOGS" = "on" ]; then
+			echo "nyaa_chkupd: $NAME upstream ver: $UPSTREAM_VERSION local: $VERSION" >> out.txt
+		fi
+		
 		echo "nyaa_chkupd: upstream version: $UPSTREAM_VERSION"
 		echo "nyaa_chkupd: local version: $VERSION"
+
+		if [ "$UPDATEPKG" = "on" ]; then
+			echo "nyaa_chkupd: updating package $NAME"
+			sed -i "s/$VERSION/$UPSTREAM_VERSION/" "$LIBCHKUPD_BIN_PATH/run"
+			echo "nyaa_chkupd: please check if the package works or not"
+		fi
+		
 		export ERR=1
 	fi
 
